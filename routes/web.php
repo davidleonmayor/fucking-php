@@ -10,3 +10,6 @@ Route::get('/', function () {
 });
 
 
+Route::get('/audios', function () {
+    return view('audios/index');
+});

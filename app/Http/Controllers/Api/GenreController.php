@@ -178,31 +178,28 @@ class GenreController extends Controller
     public function destroy(Genre $genre)
     {
         // Iniciar una transacción
-    DB::beginTransaction();
-
-    try {
-        // Encontrar el género existente
-        $genre = Genre::findOrFail($id);
-
-        // Eliminar la imagen en Cloudinary si existe
-        if ($genre->image_path) {
-            $publicId = pathinfo(basename($genre->image_path), PATHINFO_FILENAME);
-            Cloudinary::destroy('genres/images/' . $publicId);
+        DB::beginTransaction();
+    
+        try {
+            // Eliminar la imagen en Cloudinary si existe
+            if ($genre->image_path) {
+                $publicId = pathinfo(basename($genre->image_path), PATHINFO_FILENAME);
+                Cloudinary::destroy('genres/images/' . $publicId);
+            }
+    
+            // Eliminar el registro del género de la base de datos
+            $genre->delete();
+    
+            // Confirmar la transacción
+            DB::commit();
+    
+            return response()->json(['message' => 'Genre and associated image successfully deleted.'], 200);
+    
+        } catch (\Exception $e) {
+            // Revertir la transacción en caso de error
+            DB::rollBack();
+    
+            return response()->json(['error' => 'Failed to delete genre and associated image: ' . $e->getMessage()], 400);
         }
-
-        // Eliminar el registro del género de la base de datos
-        $genre->delete();
-
-        // Confirmar la transacción
-        DB::commit();
-
-        return response()->json(['message' => 'Genre and associated image successfully deleted.'], 200);
-
-    } catch (\Exception $e) {
-        // Revertir la transacción en caso de error
-        DB::rollBack();
-
-        return response()->json(['error' => 'Failed to delete genre and associated image: ' . $e->getMessage()], 400);
     }
-    }
-}
+}    

@@ -24,10 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 // Rutas para Audio
-Route::apiResource('audios', AudioController::class);
+Route::apiResource('audios', AlbumController::class);
 
-// Rutas para Podcast
-Route::apiResource('podcasts', PodcastController::class);
 
 // Rutas para Playlist
 Route::apiResource('playlists', PlaylistController::class);
@@ -38,6 +36,7 @@ Route::apiResource('genres', GenreController::class);
 
 
 // Rutas para Album
+//http://tranquilidad.test/v1/albums
 Route::apiResource('albums', AlbumController::class);
 
 // Rutas para Tag

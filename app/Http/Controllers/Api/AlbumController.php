@@ -25,56 +25,68 @@ class AlbumController extends Controller
 
 
     public function store(Request $request)
-    {
-        // Validar la solicitud
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+{
+    // Validar la solicitud
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'audios' => 'nullable|array', // Validar la lista de audios
+        'audios.*' => 'file|mimes:mp3,wav|max:10240' // Validar cada archivo de audio
+    ]);
 
-        // Manejar la carga del archivo de imagen
-        $imageFilePath = null;
-        if ($request->hasFile('image_file')) {
-            $imageFile = $request->file('image_file');
+    // Manejar la carga del archivo de imagen
+    $imageFilePath = null;
+    if ($request->hasFile('image_file')) {
+        try {
+            $uploadedImage = Cloudinary::upload($request->file('image_file')->getRealPath(), [
+                'folder' => 'albums/images',
+                'public_id' => Str::random(10)
+            ]);
+            $imageFilePath = $uploadedImage->getSecurePath();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al subir imagen a Cloudinary: ' . $e->getMessage()], 400);
+        }
+    }
 
-            // Verificar que el archivo es válido
-            if ($imageFile->isValid()) {
-                try {
-                    // Subir la imagen a Cloudinary
-                    $uploadedImage = Cloudinary::upload($imageFile->getRealPath(), [
-                        'folder' => 'albums/images',
-                        'public_id' => Str::random(10)
-                    ]);
-                    $imageFilePath = $uploadedImage->getSecurePath(); // Obtener la URL segura de la imagen
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Failed to upload image to Cloudinary: ' . $e->getMessage()], 400);
-                }
-            } else {
-                return response()->json(['error' => 'Invalid image file or file not valid'], 400);
+    // Crear el álbum
+    $album = Album::create([
+        'title' => $request->title,
+        'description' => $request->description,
+        'image_path' => $imageFilePath,
+    ]);
+
+    // Manejar los audios
+    if ($request->hasFile('audios')) {
+        foreach ($request->file('audios') as $audio) {
+            try {
+                $uploadedAudio = Cloudinary::upload($audio->getRealPath(), [
+                    'folder' => 'albums/audios',
+                    'resource_type' => 'video', // Cloudinary maneja audios como "video"
+                    'public_id' => Str::random(10)
+                ]);
+
+                // Crear el modelo de Audio y asociarlo con el álbum
+                $album->audios()->create([
+                    'file_path' => $uploadedAudio->getSecurePath(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error al subir audio: ' . $e->getMessage()], 400);
             }
         }
-
-        // Crear el nuevo álbum
-        $album = Album::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'image_path' => $imageFilePath, // Almacenar la URL de la imagen
-        ]);
-
-        return response()->json($album, 201);
     }
 
+    return response()->json($album->load('audios'), 201);
+}
 
-    public function show($id)
-    {
-        $album = Album::included()
-            ->filter()
-            ->sort()
-            ->findOrFail($id);
-        return $album;
-    }
 
+
+public function show($id)
+{
+    $album = Album::with('audios') // Aseguramos que se traigan los audios relacionados
+        ->findOrFail($id);
+    return response()->json($album);
+}
 
     public function update(Request $request, $id)
 

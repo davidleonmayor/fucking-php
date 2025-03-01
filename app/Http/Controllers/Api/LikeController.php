@@ -11,15 +11,16 @@ class LikeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $likes = Like::included()
+        $likes = Like::with(['likeable', 'user'])
             ->filter()
             ->sort()
             ->getOrPaginate();
+    
         return response()->json($likes);
     }
-
+    
     //para User FICTICIO
 
 
@@ -134,7 +135,6 @@ class LikeController extends Controller
     {
         try {
             $user_id = 5;  // Usuario ficticio para pruebas
-
             // Buscar el like por su ID y usuario
             $like = Like::where('id', $id)->where('user_id', $user_id)->first();
 

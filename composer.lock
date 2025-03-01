@@ -137,16 +137,16 @@
         },
         {
             "name": "cloudinary-labs/cloudinary-laravel",
-            "version": "2.2.1",
+            "version": "2.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cloudinary-community/cloudinary-laravel.git",
-                "reference": "434bb1fff2ef54e68bf5e4e05dbf8cf6bb3cf37b"
+                "reference": "5e75defda3dd1b33d0b5dfb6ac8dd7b6d0aabdc9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cloudinary-community/cloudinary-laravel/zipball/434bb1fff2ef54e68bf5e4e05dbf8cf6bb3cf37b",
-                "reference": "434bb1fff2ef54e68bf5e4e05dbf8cf6bb3cf37b",
+                "url": "https://api.github.com/repos/cloudinary-community/cloudinary-laravel/zipball/5e75defda3dd1b33d0b5dfb6ac8dd7b6d0aabdc9",
+                "reference": "5e75defda3dd1b33d0b5dfb6ac8dd7b6d0aabdc9",
                 "shasum": ""
             },
             "require": {
@@ -156,6 +156,7 @@
                 "php": "^8.1"
             },
             "require-dev": {
+                "laravel/pint": "^1.20",
                 "mockery/mockery": "^1.1",
                 "orchestra/testbench": "^8.0|^9.0",
                 "pestphp/pest": "^2.35",
@@ -164,12 +165,12 @@
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "CloudinaryLabs\\CloudinaryLaravel\\CloudinaryServiceProvider"
-                    ],
                     "aliases": {
                         "Cloudinary": "CloudinaryLabs\\CloudinaryLaravel\\Facades\\Cloudinary"
-                    }
+                    },
+                    "providers": [
+                        "CloudinaryLabs\\CloudinaryLaravel\\CloudinaryServiceProvider"
+                    ]
                 }
             },
             "autoload": {
@@ -203,9 +204,9 @@
             ],
             "support": {
                 "issues": "https://github.com/cloudinary-community/cloudinary-laravel/issues",
-                "source": "https://github.com/cloudinary-community/cloudinary-laravel/tree/2.2.1"
+                "source": "https://github.com/cloudinary-community/cloudinary-laravel/tree/2.2.3"
             },
-            "time": "2024-08-14T16:24:55+00:00"
+            "time": "2025-01-28T19:07:51+00:00"
         },
         {
             "name": "cloudinary/cloudinary_php",
@@ -8390,12 +8391,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.1"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

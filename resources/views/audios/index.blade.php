@@ -12,6 +12,7 @@
         <ul>
             @foreach($audios as $audio)
                 <li>
+               
                     <h2><a href="{{ route('audio.show', $audio['id']) }}">{{ $audio['title'] }}</a></h2>
                 </li>
             @endforeach
@@ -19,5 +20,8 @@
     @else
         <p>No hay audios disponibles.</p>
     @endif
+
+
+    <h1>sdguds</h1>
 </body>
 </html>

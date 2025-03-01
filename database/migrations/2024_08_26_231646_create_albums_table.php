@@ -9,6 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+     //http://tranquilidad.test/v1/albums
     public function up(): void
     {
         Schema::create('albums', function (Blueprint $table) {
