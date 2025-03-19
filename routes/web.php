@@ -3,13 +3,15 @@
 
 use Illuminate\Support\Facades\Route;
 
-
-
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/audios', function () {
+    return view('audios.index');
 });
 
+Route::get('/audios/show', function () {
+    return view('audios.show');
+});
 
-Route::get('/audios', function () {
-    return view('audios/index');
+// Otro ejemplo para "genres"
+Route::get('/genres', function () {
+    return view('genres.index');
 });

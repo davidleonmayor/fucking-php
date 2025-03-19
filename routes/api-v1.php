@@ -12,8 +12,9 @@ use App\Http\Controllers\Api\AlbumController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\HistoryController;
-
-
+use App\Http\Controllers\Api\LoginController;
+// auth
+use App\Http\Controllers\Api\RegisterController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +23,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //->names('api.v1.genres')
 //http://tranquilidad.test/v1/genres
 
+
+// Rutas para Auth
+// Route::post('register', [RegisterController::class, 'register']);
+Route::post('login', [LoginController::class, 'login']);
+// Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 
 // Rutas para Audio
 Route::apiResource('audios', AlbumController::class);
