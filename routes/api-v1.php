@@ -12,8 +12,8 @@ use App\Http\Controllers\Api\AlbumController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\HistoryController;
-use App\Http\Controllers\Api\LoginController;
 // auth
+use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 // Rutas para Auth
-// Route::post('register', [RegisterController::class, 'register']);
+Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [LoginController::class, 'login']);
 // Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 
