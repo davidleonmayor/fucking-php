@@ -15,6 +15,9 @@ use App\Http\Controllers\Api\HistoryController;
 // auth
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -31,8 +34,12 @@ Route::post('login', [LoginController::class, 'login']);
 // Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 
 // Ruta para recuperación de contraseña
-Route::post('forgot-password', [LoginController::class, 'forgotPassword']);
-Route::post('reset-password', [LoginController::class, 'resetPassword'])->name('password.reset');
+// Route::post('forgot-password', [LoginController::class, 'forgotPassword']);
+// Route::post('reset-password', [LoginController::class, 'resetPassword'])->name('password.reset');
+
+//
+Route::post('forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
+Route::post('reset-password', [ForgotPasswordController::class, 'resetPassword']);
 
 // Rutas para Audio
 Route::apiResource('audios', AlbumController::class);
