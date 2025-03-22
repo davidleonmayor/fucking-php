@@ -94,8 +94,8 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
-            'expire' => 60,
-            'throttle' => 60,
+            'expire' => 60, // El token expira en 60 minutos
+            'throttle' => 60, // Espera de 60 segundos antes de solicitar otro token
         ],
     ],
 

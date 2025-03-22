@@ -27,7 +27,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Rutas para Auth
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [LoginController::class, 'login']);
+// TODO: 
 // Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
+
+// Ruta para recuperación de contraseña
+Route::post('forgot-password', [LoginController::class, 'forgotPassword']);
+Route::post('reset-password', [LoginController::class, 'resetPassword'])->name('password.reset');
 
 // Rutas para Audio
 Route::apiResource('audios', AlbumController::class);
