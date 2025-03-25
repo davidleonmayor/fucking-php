@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Playlist;
+use App\Models\Podcast;
 use Illuminate\Http\Request;
 
 class PlaylistController extends Controller
@@ -141,6 +142,33 @@ public function listAudios(Playlist $playlist)
         ], 200);
     }
 
+    
+    // --------------------------PODCAS--------------------------
+    public function addPodcast(Request $request, $playlistId)
+{
+    $playlist = Playlist::find($playlistId);
+    $podcastId = $request->input('podcast_id');
+    $podcast = Podcast::find($podcastId);
+
+    if ($playlist && $podcast) {
+        $playlist->podcasts()->attach($podcastId);
+        return response()->json(['message' => 'Pod cast added to playlist successfully'], 200);
+    } else {
+        return response()->json(['error' => 'Playlist or pod cast not found'], 404);
+    }
+}
+
+public function listPodcasts($playlistId)
+{
+    $playlist = Playlist::find($playlistId);
+    if ($playlist) {
+        $podcasts = $playlist->podcasts;
+        return response()->json($podcasts, 200);
+    } else {
+        return response()->json(['error' => 'Playlist not found'], 404);
+    }
+}
+
     public function removePodcast(Playlist $playlist, $podcastId)
 {
     // Eliminar la relación entre la playlist y el podcast en la tabla pivote
@@ -148,6 +176,8 @@ public function listAudios(Playlist $playlist)
 
     return response()->json(['message' => 'Podcast eliminado de la playlist'], 200);
 }
+
+
 
 //http://tranquilidad.test/v1/playlists/{playlist_id}/audios/{audio_id}
 

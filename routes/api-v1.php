@@ -39,7 +39,8 @@ Route::post('reset-password', [ForgotPasswordController::class, 'resetPassword']
 // Rutas para Audio
 Route::apiResource('audios', AudioController::class);
 
-
+// Podcast 
+Route::apiResource('podcasts', PodcastController::class);
 
 // Rutas para Playlist
 Route::apiResource('playlists', PlaylistController::class);
@@ -67,6 +68,8 @@ Route::apiResource('histories', HistoryController::class);
 
 
 // RUTAS PARA ELIMINAR REGISTROS DE LA RELACION DE PLAYLIST
+Route::post('/playlists/{playlist}/podcasts', [PlaylistController::class, 'addPodcast']);
+Route::get('/playlists/{playlist}/podcasts', [PlaylistController::class, 'listPodcasts']);
 //Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
 Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
 
@@ -77,9 +80,11 @@ Route::put('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, '
 Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
 
 
+
 // Rutas para asociar y desasociar tags con audios y podcasts
 // Route::post('/audios/{audio}/tags', [TagController::class, 'attachTagToAudio']);
 // Route::delete('/audios/{audio}/tags', [TagController::class, 'detachTagFromAudio']);
+
 
 Route::post('/podcasts/{podcast}/tags', [TagController::class, 'attachTagToPodcast']);
 Route::delete('/podcasts/{podcast}/tags', [TagController::class, 'detachTagFromPodcast']);
