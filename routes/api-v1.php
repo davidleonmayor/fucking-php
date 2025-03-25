@@ -70,6 +70,12 @@ Route::apiResource('histories', HistoryController::class);
 //Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
 Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
 
+// audioPlailist
+Route::post('/playlists/{playlist}/audios', [PlaylistController::class, 'addAudio']);
+Route::get('/playlists/{playlist}/audios', [PlaylistController::class, 'listAudios']);
+Route::put('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'updateAudio']);
+Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
+
 
 // Rutas para asociar y desasociar tags con audios y podcasts
 // Route::post('/audios/{audio}/tags', [TagController::class, 'attachTagToAudio']);

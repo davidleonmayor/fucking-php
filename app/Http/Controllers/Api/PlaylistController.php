@@ -88,7 +88,60 @@ class PlaylistController extends Controller
     return response()->json(['message' => 'Audio eliminado de la playlist'], 200);
 }
 
-public function removePodcast(Playlist $playlist, $podcastId)
+public function addAudio(Request $request, Playlist $playlist)
+{
+    // Validamos que se envíe un audio_id y que exista en la tabla 'audios'
+    $request->validate([
+        'audio_id' => 'required|exists:audios,id',
+    ]);
+
+    //Solo el usuario propieratio puede modificarlo
+
+    // if ($playlist->user_id !== auth()->id()) {
+    //     return response()->json(['error' => 'No puedes modificar esta playlist'], 403);
+    // }
+
+    // Adjuntamos el audio a la playlist (relación muchos a muchos)
+    $playlist->audios()->attach($request->audio_id);
+
+    return response()->json([
+        'message' => 'Audio agregado a la playlist exitosamente.',
+    ], 201);
+}
+ 
+public function listAudios(Playlist $playlist)
+    {
+        $audios = $playlist->audios()->get();
+        return response()->json([
+            'playlist_id' => $playlist->id,
+            'audios'      => $audios
+        ], 200);
+    }
+
+ public function updateAudio(Request $request, Playlist $playlist, $audioId)
+    {
+        $data = $request->validate([
+            'order' => 'required|integer',
+        ]);
+
+        // Verificar que el audio exista en la playlist
+        if (!$playlist->audios()->where('audio_id', $audioId)->exists()) {
+            return response()->json([
+                'error' => 'Audio no encontrado en la playlist'
+            ], 404);
+        }
+
+        // Actualizar el campo 'order' en la tabla pivote
+        $playlist->audios()->updateExistingPivot($audioId, ['order' => $data['order']]);
+
+        return response()->json([
+            'message' => 'Audio actualizado exitosamente',
+            'audio_id' => $audioId,
+            'order'    => $data['order']
+        ], 200);
+    }
+
+    public function removePodcast(Playlist $playlist, $podcastId)
 {
     // Eliminar la relación entre la playlist y el podcast en la tabla pivote
     $playlist->podcasts()->detach($podcastId);
