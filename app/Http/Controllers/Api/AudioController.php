@@ -40,23 +40,32 @@ class AudioController extends Controller
             'frecuencia' => 'required_if:es_binaural,true|nullable|numeric',
         ]);
 
-        $imageFilePath = $request->hasFile('image_file')
-            ? Cloudinary::upload($request->file('image_file')->getRealPath(), ['folder' => 'audios/images'])->getSecurePath()
-            : null;
+        DB::beginTransaction();
 
-        $audioFilePath = Cloudinary::upload($request->file('audio_file')->getRealPath(), [
-            'resource_type' => 'video',
-            'folder' => 'audios/mp3'
-        ])->getSecurePath();
+        try {
+            $imageFilePath = $request->hasFile('image_file')
+                ? Cloudinary::upload($request->file('image_file')->getRealPath(), ['folder' => 'audios/images'])->getSecurePath()
+                : null;
 
-        $audio = Audio::create(array_merge($request->only([
-            'title', 'description', 'duration', 'genre_id', 'album_id', 'es_binaural', 'frecuencia'
-        ]), [
-            'image_file' => $imageFilePath,
-            'audio_file' => $audioFilePath,
-        ]));
+            $audioFilePath = Cloudinary::upload($request->file('audio_file')->getRealPath(), [
+                'resource_type' => 'video',
+                'folder' => 'audios/mp3'
+            ])->getSecurePath();
 
-        return response()->json($audio, 201);
+            $audio = Audio::create(array_merge($request->only([
+                'title', 'description', 'duration', 'genre_id', 'album_id', 'es_binaural', 'frecuencia'
+            ]), [
+                'image_file' => $imageFilePath,
+                'audio_file' => $audioFilePath,
+            ]));
+
+            DB::commit();
+
+            return response()->json($audio, 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al crear el audio: ' . $e->getMessage()], 400);
+        }
     }
 
     // Mostrar un audio específico
