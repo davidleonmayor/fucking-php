@@ -8,17 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Podcast extends Model
 {
-    use HasFactory,ApiTrait;
+    use HasFactory, ApiTrait;
 
-    protected $guarded= [];
+    protected $guarded = [];
 
-
-    //Listas Blancas
+    // Listas Blancas
     protected $allowIncluded = ['tags', 'likes', 'histories', 'playlists'];
-    protected $allowFilter = ['id', 'title','description', 'duration'];
-    protected $allowSort = ['id', 'title','duration'];
-
-
+    protected $allowFilter = ['id', 'title', 'description', 'duration'];
+    protected $allowSort = ['id', 'title', 'duration'];
 
     // Relación polimórfica muchos a muchos con el modelo Tag
     public function tags()
@@ -38,8 +35,7 @@ class Podcast extends Model
         return $this->morphMany(History::class, 'historable');
     }
 
-    //muchos a muchos 
-
+    // Relación muchos a muchos con Playlist
     public function playlists()
     {
         return $this->belongsToMany(Playlist::class, 'playlist_podcast');

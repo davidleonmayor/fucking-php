@@ -70,7 +70,6 @@ Route::apiResource('histories', HistoryController::class);
 // RUTAS PARA ELIMINAR REGISTROS DE LA RELACION DE PLAYLIST
 Route::post('/playlists/{playlist}/podcasts', [PlaylistController::class, 'addPodcast']);
 Route::get('/playlists/{playlist}/podcasts', [PlaylistController::class, 'listPodcasts']);
-//Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
 Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
 
 // audioPlailist
