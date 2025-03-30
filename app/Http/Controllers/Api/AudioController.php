@@ -30,14 +30,55 @@ class AudioController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'required|string',
+            'image_file' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'audio_file' => 'required|mimes:mp3,wav,aac|max:10000|unique:audios,audio_file',
             'duration' => 'required|integer',
             'genre_id' => 'required|exists:genres,id',
             'album_id' => 'nullable|exists:albums,id',
             'es_binaural' => 'required|boolean',
             'frecuencia' => 'required_if:es_binaural,true|nullable|numeric',
+        ], [
+            // Custom messages for 'title'
+            'title.required' => 'El título es obligatorio.',
+            'title.string' => 'El título debe ser una cadena de texto.',
+            'title.max' => 'El título no puede exceder los 255 caracteres.',
+
+            // Custom messages for 'description'
+            'description.string' => 'La descripción debe ser una cadena de texto.',
+            'description.required' => 'La descripción es obligatorioa.',
+
+
+            // Custom messages for 'image_file'
+            'image_file.required' => 'El archivo de imagen es obligatorio.',
+            'image_file.image' => 'El archivo de imagen debe ser una imagen válida.',
+            'image_file.mimes' => 'La imagen debe estar en formato jpeg, png, jpg o gif.',
+            'image_file.max' => 'La imagen no puede exceder los 2MB.',
+
+            // Custom messages for 'audio_file'
+            'audio_file.required' => 'El archivo de audio es obligatorio.',
+            'audio_file.mimes' => 'El audio debe estar en formato mp3, wav o aac.',
+            'audio_file.max' => 'El audio no puede exceder los 10MB.',
+            'audio_file.unique' => 'Este archivo de audio ya existe en la base de datos.',
+
+            // Custom messages for 'duration'
+            'duration.required' => 'La duración es obligatoria.',
+            'duration.integer' => 'La duración debe ser un número entero.',
+
+            // Custom messages for 'genre_id'
+            'genre_id.required' => 'El ID del género es obligatorio.',
+            'genre_id.exists' => 'El género seleccionado no existe en la base de datos.',
+
+            // Custom messages for 'album_id'
+            'album_id.exists' => 'El álbum seleccionado no existe en la base de datos.',
+
+            // Custom messages for 'es_binaural'
+            'es_binaural.required' => 'El campo es_binaural es obligatorio.',
+            'es_binaural.boolean' => 'El campo es_binaural debe ser verdadero o falso.',
+
+            // Custom messages for 'frecuencia'
+            'frecuencia.required_if' => 'La frecuencia es obligatoria cuando es_binaural es verdadero.',
+            'frecuencia.numeric' => 'La frecuencia debe ser un valor numérico.',
         ]);
 
         $imageFilePath = $request->hasFile('image_file')
@@ -50,7 +91,13 @@ class AudioController extends Controller
         ])->getSecurePath();
 
         $audio = Audio::create(array_merge($request->only([
-            'title', 'description', 'duration', 'genre_id', 'album_id', 'es_binaural', 'frecuencia'
+            'title',
+            'description',
+            'duration',
+            'genre_id',
+            'album_id',
+            'es_binaural',
+            'frecuencia'
         ]), [
             'image_file' => $imageFilePath,
             'audio_file' => $audioFilePath,
@@ -58,7 +105,6 @@ class AudioController extends Controller
 
         return response()->json($audio, 201);
     }
-
     // Mostrar un audio específico
     public function show($id)
     {
@@ -82,7 +128,7 @@ class AudioController extends Controller
         ]);
 
         $audio = Audio::findOrFail($id);
-        
+
         if ($request->hasFile('image_file')) {
             $audio->image_file = Cloudinary::upload($request->file('image_file')->getRealPath(), ['folder' => 'images'])->getSecurePath();
         }
@@ -101,8 +147,10 @@ class AudioController extends Controller
         DB::beginTransaction();
         try {
             $audio = Audio::findOrFail($id);
-            if ($audio->image_file) Cloudinary::destroy('images/' . pathinfo($audio->image_file, PATHINFO_FILENAME));
-            if ($audio->audio_file) Cloudinary::destroy('audios/' . pathinfo($audio->audio_file, PATHINFO_FILENAME), ['resource_type' => 'video']);
+            if ($audio->image_file)
+                Cloudinary::destroy('images/' . pathinfo($audio->image_file, PATHINFO_FILENAME));
+            if ($audio->audio_file)
+                Cloudinary::destroy('audios/' . pathinfo($audio->audio_file, PATHINFO_FILENAME), ['resource_type' => 'video']);
             $audio->delete();
             DB::commit();
             return response()->json(['message' => 'Audio eliminado correctamente.'], 200);
@@ -111,4 +159,6 @@ class AudioController extends Controller
             return response()->json(['error' => 'Error al eliminar el audio: ' . $e->getMessage()], 400);
         }
     }
+
+
 }
