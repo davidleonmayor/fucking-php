@@ -66,22 +66,22 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Clásica',
                 'description' => 'Música Clásica',
-                'image_local_path' => storage_path('app/public/genre-just-relax.jpg'),
+                'image_local_path' => storage_path('app/public/genre-clasica.png'),
             ],
             [
                 'name' => 'Ambiental',
                 'description' => 'Música Ambiental',
-                'image_local_path' => storage_path('app/public/genre-just-relax.jpg'),
+                'image_local_path' => storage_path('app/public/genre-ambiental.jpg'),
             ],
             [
                 'name' => 'Instrumental',
                 'description' => 'Música Instrumental',
-                'image_local_path' => storage_path('app/public/genre-just-relax.jpg'),
+                'image_local_path' => storage_path('app/public/genre-instrumental.png'),
             ],
             [
                 'name' => 'Electrónica',
                 'description' => 'Música Electrónica',
-                'image_local_path' => storage_path('app/public/genre-just-relax.jpg'),
+                'image_local_path' => storage_path('app/public/genre-electronica.jpg'),
             ]
         ];
 
@@ -109,7 +109,7 @@ class DatabaseSeeder extends Seeder
                     ]
                 );
             } catch (\Exception $e) {
-                echo "Error uploading image for " . $genreData['name'] . ": " . $e->getMessage() . "\n";
+                echo "Error al subir la imagen para " . $genreData['name'] . ": " . $e->getMessage() . "\n";
             }
         }
     }
@@ -117,13 +117,13 @@ class DatabaseSeeder extends Seeder
     private function audios()
     {
         // Obtener los géneros creados para asociar los audios
-        $ClasicaGenre = Genre::where('name', 'Clásica')->first();
-        $AmbientalGenre = Genre::where('name', 'Ambiental')->first();
-        $InstrumentalGenre = Genre::where('name', 'Instrumental')->first();
-        $ElectronicaGenre = Genre::where('name', 'Electrónica')->first();
+        $clasicaGenre = Genre::where('name', 'Clásica')->first();
+        $ambientalGenre = Genre::where('name', 'Ambiental')->first();
+        $instrumentalGenre = Genre::where('name', 'Instrumental')->first();
+        $electronicaGenre = Genre::where('name', 'Electrónica')->first();
 
         // Verificar que todos los géneros existan
-        if (!$ClasicaGenre || !$AmbientalGenre || !$InstrumentalGenre || !$ElectronicaGenre) {
+        if (!$clasicaGenre || !$ambientalGenre || !$instrumentalGenre || !$electronicaGenre) {
             echo "Error: Géneros no encontrados. Asegúrate de que los géneros se hayan creado primero.\n";
             return;
         }
@@ -131,32 +131,54 @@ class DatabaseSeeder extends Seeder
         $audios = [
             [
                 'title' => 'Rock Meditation',
-                'description' => 'A rock-inspired meditation track',
-                'image_local_path' => storage_path('app/public/audio-image.jpg'),
+                'description' => 'Una pista de meditación inspirada en el rock',
+                'image_local_path' => storage_path('app/public/El-piano.jpg'),
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 600, // 10 minutos en segundos
-                'genre_id' => $ClasicaGenre->id,
+                'genre_id' => $clasicaGenre->id,
                 'album_id' => null,
                 'es_binaural' => true,
                 'frecuencia' => 432.0,
             ],
             [
                 'title' => 'Jazz Relaxation',
-                'description' => 'A relaxing jazz audio track',
-                'image_local_path' => storage_path('app/public/audio-image.jpg'),
+                'description' => 'Una pista de audio relajante de jazz',
+                'image_local_path' => storage_path('app/public/El-piano.jpg'),
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 900, // 15 minutos en segundos
-                'genre_id' => $AmbientalGenre->id,
+                'genre_id' => $ambientalGenre->id,
                 'album_id' => null,
                 'es_binaural' => false,
                 'frecuencia' => null,
+            ],
+            [
+                'title' => 'Piano Dreams',
+                'description' => 'Melodías de piano para soñar',
+                'image_local_path' => storage_path('app/public/El-piano.jpg'),
+                'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
+                'duration' => 720, // 12 minutos en segundos
+                'genre_id' => $instrumentalGenre->id,
+                'album_id' => null,
+                'es_binaural' => false,
+                'frecuencia' => null,
+            ],
+            [
+                'title' => 'Electronic Vibes',
+                'description' => 'Vibras electrónicas para energizarte',
+                'image_local_path' => storage_path('app/public/El-piano.jpg'),
+                'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
+                'duration' => 840, // 14 minutos en segundos
+                'genre_id' => $electronicaGenre->id,
+                'album_id' => null,
+                'es_binaural' => true,
+                'frecuencia' => 440.0,
             ],
         ];
 
         foreach ($audios as $audioData) {
             try {
                 // Subir imagen a Cloudinary
-                $imageUrl = null; // Corrección aquí
+                $imageUrl = null;
                 if (file_exists($audioData['image_local_path'])) {
                     $uploadedImage = Cloudinary::upload($audioData['image_local_path'], [
                         'folder' => 'audios/images',
@@ -194,7 +216,7 @@ class DatabaseSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
             } catch (\Exception $e) {
-                echo "Error uploading audio for " . $audioData['title'] . ": " . $e->getMessage() . "\n";
+                echo "Error al subir el audio para " . $audioData['title'] . ": " . $e->getMessage() . "\n";
             }
         }
     }
@@ -205,35 +227,33 @@ class DatabaseSeeder extends Seeder
         $santiago = User::where('email', 'SantiagoTorres2@gmail.com')->first();
         $maria = User::where('email', 'MariaLopez2@gmail.com')->first();
 
-        // Obtener audios según género
-        $ambientalAudio = Audio::whereHas('genre', function ($query) {
-            $query->where('name', 'Ambiental');
-        })->first();
+        // Obtener audios por título para relacionarlos en las playlists
+        $rockAudio = Audio::where('title', 'Rock Meditation')->first();
+        $jazzAudio = Audio::where('title', 'Jazz Relaxation')->first();
+        $pianoAudio = Audio::where('title', 'Piano Dreams')->first();
+        $electronicAudio = Audio::where('title', 'Electronic Vibes')->first();
 
-        $instrumentalAudio = Audio::whereHas('genre', function ($query) {
-            $query->where('name', 'Instrumental');
-        })->first();
-
-        if ($santiago && $ambientalAudio && $instrumentalAudio) {
+        // Playlist para Santiago: asocia dos audios (por ejemplo, Clásica y Instrumental)
+        if ($santiago && $rockAudio && $pianoAudio) {
             $playlistSantiago = Playlist::create([
                 'name' => 'Santiago Playlist',
                 'user_id' => $santiago->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            // Relacionar ambos audios a la playlist de Santiago
-            $playlistSantiago->audios()->attach($ambientalAudio->id);
-            $playlistSantiago->audios()->attach($instrumentalAudio->id);
+            // Asociar ambos audios a la playlist de Santiago
+            $playlistSantiago->audios()->attach([$rockAudio->id, $pianoAudio->id]);
         }
 
-        if ($maria && $instrumentalAudio) {
+        // Playlist para Maria: asocia dos audios (por ejemplo, Ambiental y Electrónica)
+        if ($maria && $jazzAudio && $electronicAudio) {
             $playlistMaria = Playlist::create([
                 'name' => 'Maria Playlist',
                 'user_id' => $maria->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            $playlistMaria->audios()->attach($instrumentalAudio->id);
+            $playlistMaria->audios()->attach([$jazzAudio->id, $electronicAudio->id]);
         }
     }
 }
