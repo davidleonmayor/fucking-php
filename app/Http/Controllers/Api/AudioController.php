@@ -11,16 +11,22 @@ use Illuminate\Support\Str;
 
 class AudioController extends Controller
 {
-    // Listar audios con filtrado por álbum
+    // Listar audios con filtrado por álbum o género
     public function index(Request $request)
     {
         $query = Audio::query();
 
+        // Filtrar por album_id si está presente
         if ($request->has('album_id')) {
             $query->where('album_id', $request->album_id);
         }
 
-        $audios = $query->get(); // Puedes cambiar a paginate() si necesitas paginación
+        // Filtrar por genre_id si está presente
+        if ($request->has('genre_id')) {
+            $query->where('genre_id', $request->genre_id);
+        }
+
+        $audios = $query->with(['genre'])->get(); // Incluye la relación 'genre' para más información
 
         return response()->json($audios);
     }
@@ -39,44 +45,26 @@ class AudioController extends Controller
             'es_binaural' => 'required|boolean',
             'frecuencia' => 'required_if:es_binaural,true|nullable|numeric',
         ], [
-            // Custom messages for 'title'
             'title.required' => 'El título es obligatorio.',
             'title.string' => 'El título debe ser una cadena de texto.',
             'title.max' => 'El título no puede exceder los 255 caracteres.',
-
-            // Custom messages for 'description'
             'description.string' => 'La descripción debe ser una cadena de texto.',
-            'description.required' => 'La descripción es obligatorioa.',
-
-
-            // Custom messages for 'image_file'
+            'description.required' => 'La descripción es obligatoria.',
             'image_file.required' => 'El archivo de imagen es obligatorio.',
             'image_file.image' => 'El archivo de imagen debe ser una imagen válida.',
             'image_file.mimes' => 'La imagen debe estar en formato jpeg, png, jpg o gif.',
             'image_file.max' => 'La imagen no puede exceder los 2MB.',
-
-            // Custom messages for 'audio_file'
             'audio_file.required' => 'El archivo de audio es obligatorio.',
             'audio_file.mimes' => 'El audio debe estar en formato mp3, wav o aac.',
             'audio_file.max' => 'El audio no puede exceder los 10MB.',
             'audio_file.unique' => 'Este archivo de audio ya existe en la base de datos.',
-
-            // Custom messages for 'duration'
             'duration.required' => 'La duración es obligatoria.',
             'duration.integer' => 'La duración debe ser un número entero.',
-
-            // Custom messages for 'genre_id'
             'genre_id.required' => 'El ID del género es obligatorio.',
             'genre_id.exists' => 'El género seleccionado no existe en la base de datos.',
-
-            // Custom messages for 'album_id'
             'album_id.exists' => 'El álbum seleccionado no existe en la base de datos.',
-
-            // Custom messages for 'es_binaural'
             'es_binaural.required' => 'El campo es_binaural es obligatorio.',
             'es_binaural.boolean' => 'El campo es_binaural debe ser verdadero o falso.',
-
-            // Custom messages for 'frecuencia'
             'frecuencia.required_if' => 'La frecuencia es obligatoria cuando es_binaural es verdadero.',
             'frecuencia.numeric' => 'La frecuencia debe ser un valor numérico.',
         ]);
@@ -105,6 +93,7 @@ class AudioController extends Controller
 
         return response()->json($audio, 201);
     }
+
     // Mostrar un audio específico
     public function show($id)
     {
@@ -159,6 +148,4 @@ class AudioController extends Controller
             return response()->json(['error' => 'Error al eliminar el audio: ' . $e->getMessage()], 400);
         }
     }
-
-
 }

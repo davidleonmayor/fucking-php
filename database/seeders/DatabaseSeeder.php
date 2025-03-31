@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Album;
 use App\Models\User;
 use App\Models\Genre;
 use App\Models\Audio;
@@ -24,6 +25,26 @@ class DatabaseSeeder extends Seeder
         Playlist::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
+        // Insertar usuarios
+        $this->users();
+
+        // Crear álbumes
+        $this->albums();
+
+        // Insertar géneros
+        $this->genres();
+
+        // Insertar audios
+        $this->audios();
+
+        // Crear playlists y relacionarlas con audios y usuarios
+        $this->playlists();
+
+
+    }
+
+    private function users()
+    {
         // Crear usuarios
         $users = [
             [
@@ -49,15 +70,6 @@ class DatabaseSeeder extends Seeder
         foreach ($users as $userData) {
             User::firstOrCreate(['email' => $userData['email']], $userData);
         }
-
-        // Insertar géneros
-        $this->genres();
-
-        // Insertar audios
-        $this->audios();
-
-        // Crear playlists y relacionarlas con audios y usuarios
-        $this->playlists();
     }
 
     private function genres()
@@ -256,4 +268,61 @@ class DatabaseSeeder extends Seeder
             $playlistMaria->audios()->attach([$jazzAudio->id, $electronicAudio->id]);
         }
     }
+
+    private function albums()
+    {
+        $albums = [
+            [
+                'title' => 'Dormir',
+                'description' => 'Música y sonidos para conciliar el sueño.',
+                // Ajusta la ruta al archivo de imagen que quieras subir
+                'image_local_path' => storage_path('app/public/album-dormir.png'),
+            ],
+            [
+                'title' => 'Relajarse',
+                'description' => 'Melodías relajantes y sonidos ambientales.',
+                'image_local_path' => storage_path('app/public/album-relajarse.png'),
+            ],
+            [
+                'title' => 'Concentrarse',
+                'description' => 'Audios y ritmos para mejorar la concentración.',
+                'image_local_path' => storage_path('app/public/album-concentrarse.png'),
+            ],
+            [
+                'title' => 'Gamer',
+                'description' => 'Música energética e inspirada en videojuegos.',
+                'image_local_path' => storage_path('app/public/album-gamer.png'),
+            ],
+        ];
+
+        foreach ($albums as $albumData) {
+            try {
+                // Subir imagen a Cloudinary
+                $imageUrl = null;
+                if (file_exists($albumData['image_local_path'])) {
+                    $uploadedImage = Cloudinary::upload($albumData['image_local_path'], [
+                        'folder' => 'albums/images',
+                        'public_id' => Str::random(10)
+                    ]);
+                    $imageUrl = $uploadedImage->getSecurePath();
+                } else {
+                    echo "Archivo de imagen no encontrado: " . $albumData['image_local_path'] . "\n";
+                }
+
+                // Crear o actualizar el álbum
+                Album::firstOrCreate(
+                    ['title' => $albumData['title']],  // Condición de búsqueda
+                    [
+                        'description' => $albumData['description'],
+                        'image_path' => $imageUrl,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+            } catch (\Exception $e) {
+                echo "Error al subir la imagen para " . $albumData['title'] . ": " . $e->getMessage() . "\n";
+            }
+        }
+    }
+
 }
