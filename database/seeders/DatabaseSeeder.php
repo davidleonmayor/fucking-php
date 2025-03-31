@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         Genre::truncate();
         Audio::truncate();
         Playlist::truncate();
+        Album::truncate(); // Añadimos el truncate para los álbumes
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Insertar usuarios
@@ -39,8 +40,6 @@ class DatabaseSeeder extends Seeder
 
         // Crear playlists y relacionarlas con audios y usuarios
         $this->playlists();
-
-
     }
 
     private function users()
@@ -134,9 +133,20 @@ class DatabaseSeeder extends Seeder
         $instrumentalGenre = Genre::where('name', 'Instrumental')->first();
         $electronicaGenre = Genre::where('name', 'Electrónica')->first();
 
-        // Verificar que todos los géneros existan
+        // Obtener los álbumes creados para asociar los audios
+        $dormirAlbum = Album::where('title', 'Dormir')->first();
+        $relajarseAlbum = Album::where('title', 'Relajarse')->first();
+        $concentrarseAlbum = Album::where('title', 'Concentrarse')->first();
+        $gamerAlbum = Album::where('title', 'Gamer')->first();
+
+        // Verificar que todos los géneros y álbumes existan
         if (!$clasicaGenre || !$ambientalGenre || !$instrumentalGenre || !$electronicaGenre) {
             echo "Error: Géneros no encontrados. Asegúrate de que los géneros se hayan creado primero.\n";
+            return;
+        }
+
+        if (!$dormirAlbum || !$relajarseAlbum || !$concentrarseAlbum || !$gamerAlbum) {
+            echo "Error: Álbumes no encontrados. Asegúrate de que los álbumes se hayan creado primero.\n";
             return;
         }
 
@@ -148,7 +158,7 @@ class DatabaseSeeder extends Seeder
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 600, // 10 minutos en segundos
                 'genre_id' => $clasicaGenre->id,
-                'album_id' => null,
+                'album_id' => $dormirAlbum->id, // Asociar con el álbum "Dormir"
                 'es_binaural' => true,
                 'frecuencia' => 432.0,
             ],
@@ -159,7 +169,7 @@ class DatabaseSeeder extends Seeder
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 900, // 15 minutos en segundos
                 'genre_id' => $ambientalGenre->id,
-                'album_id' => null,
+                'album_id' => $relajarseAlbum->id, // Asociar con el álbum "Relajarse"
                 'es_binaural' => false,
                 'frecuencia' => null,
             ],
@@ -170,7 +180,7 @@ class DatabaseSeeder extends Seeder
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 720, // 12 minutos en segundos
                 'genre_id' => $instrumentalGenre->id,
-                'album_id' => null,
+                'album_id' => $concentrarseAlbum->id, // Asociar con el álbum "Concentrarse"
                 'es_binaural' => false,
                 'frecuencia' => null,
             ],
@@ -181,7 +191,7 @@ class DatabaseSeeder extends Seeder
                 'audio_local_path' => storage_path('app/public/sample-audio.mp3'),
                 'duration' => 840, // 14 minutos en segundos
                 'genre_id' => $electronicaGenre->id,
-                'album_id' => null,
+                'album_id' => $gamerAlbum->id, // Asociar con el álbum "Gamer"
                 'es_binaural' => true,
                 'frecuencia' => 440.0,
             ],
@@ -221,7 +231,7 @@ class DatabaseSeeder extends Seeder
                     'audio_file' => $audioUrl,
                     'duration' => $audioData['duration'],
                     'genre_id' => $audioData['genre_id'],
-                    'album_id' => $audioData['album_id'],
+                    'album_id' => $audioData['album_id'], // Asignar el album_id
                     'es_binaural' => $audioData['es_binaural'],
                     'frecuencia' => $audioData['frecuencia'],
                     'created_at' => now(),
@@ -275,7 +285,6 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Dormir',
                 'description' => 'Música y sonidos para conciliar el sueño.',
-                // Ajusta la ruta al archivo de imagen que quieras subir
                 'image_local_path' => storage_path('app/public/album-dormir.png'),
             ],
             [
@@ -311,7 +320,7 @@ class DatabaseSeeder extends Seeder
 
                 // Crear o actualizar el álbum
                 Album::firstOrCreate(
-                    ['title' => $albumData['title']],  // Condición de búsqueda
+                    ['title' => $albumData['title']],
                     [
                         'description' => $albumData['description'],
                         'image_path' => $imageUrl,
@@ -324,5 +333,4 @@ class DatabaseSeeder extends Seeder
             }
         }
     }
-
 }
