@@ -181,9 +181,29 @@ class PlaylistController extends Controller
 
     public function listAudios(Playlist $playlist)
     {
+        // Verify the playlist belongs to the authenticated user
+        $user = request()->user();
+        if ($user && $playlist->user_id !== $user->id) {
+            return response()->json([
+                'error' => 'Acceso no autorizado',
+                'message' => 'No tienes permiso para ver los audios de esta playlist.'
+            ], 403);
+        }
+
         $audios = $playlist->audios()->get();
+        if ($audios->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron audios en esta playlist.',
+                'playlist_id' => $playlist->id,
+                'playlist_name' => $playlist->name,
+                'audios' => []
+            ], 200);
+        }
+
         return response()->json([
+            'message' => 'Audios obtenidos exitosamente.',
             'playlist_id' => $playlist->id,
+            'playlist_name' => $playlist->name,
             'audios' => $audios
         ], 200);
     }
