@@ -290,7 +290,7 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Relajarse',
                 'description' => 'Melodías relajantes y sonidos ambientales.',
-                'image_local_path' => storage_path('app/public/album-relajarse.png'),
+                'image_local_path' => storage_path('app/public/album-dormir.png'),
             ],
             [
                 'title' => 'Concentrarse',

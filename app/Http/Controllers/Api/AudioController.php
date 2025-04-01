@@ -26,10 +26,45 @@ class AudioController extends Controller
             $query->where('genre_id', $request->genre_id);
         }
 
-        $audios = $query->with(['genre'])->get(); // Incluye la relación 'genre' para más información
+        // Filtrar por es_binaural si está presente
+        if ($request->has('es_binaural')) {
+            $query->where('es_binaural', $request->es_binaural);
+        }
+
+        // Filtrar por título si está presente
+        if ($request->has('title')) {
+            $query->where('title', 'LIKE', '%' . $request->title . '%');
+        }
+
+        // Incluye la relación 'genre' y 'album'
+        $audios = $query->with(['genre', 'album'])->get();
 
         return response()->json($audios);
     }
+    // public function index(Request $request)
+    // {
+    //     $query = Audio::query();
+
+    //     // Filtrar por album_id si está presente
+    //     if ($request->has('album_id')) {
+    //         $query->where('album_id', $request->album_id);
+    //     }
+
+    //     // Filtrar por genre_id si está presente
+    //     if ($request->has('genre_id')) {
+    //         $query->where('genre_id', $request->genre_id);
+    //     }
+
+    //     // Filtrar por es_binaural si está presente
+    //     if ($request->has('es_binaural')) {
+    //         $query->where('es_binaural', $request->es_binaural);
+    //     }
+
+    //     // Incluye la relación 'genre' y 'album'
+    //     $audios = $query->with(['genre', 'album'])->get();
+
+    //     return response()->json($audios);
+    // }
 
     // Crear un nuevo audio
     public function store(Request $request)

@@ -39,6 +39,8 @@ Route::apiResource('audios', AudioController::class);
 // route to save an audio
 // Route::post('audios/save', [AudioController::class, 'store']);
 
+// Rutas para pocast
+Route::apiResource('podcasts', PodcastController::class);
 
 // Rutas para Playlist
 Route::apiResource('playlists', PlaylistController::class);
