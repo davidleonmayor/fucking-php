@@ -8,16 +8,86 @@ use Illuminate\Http\Request;
 
 class PlaylistController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
-        $playlists = Playlist::included()
-            ->filter()
-            ->sort()
-            ->getOrPaginate();
+        try {
+            $playlists = Playlist::where('user_id', $request->user()->id)
+                ->included()
+                ->filter()
+                ->sort()
+                ->getOrPaginate();
 
-        return response()->json($playlists);
+            if ($playlists->isEmpty()) {
+                return response()->json([
+                    'message' => 'No se encontraron playlists para este usuario.',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'Playlists obtenidas exitosamente.',
+                'data' => $playlists
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener las playlists',
+                'message' => 'Ocurrió un error inesperado al intentar obtener las playlists: ' . $e->getMessage()
+            ], 500);
+        }
     }
+    // public function index(Request $request)
+    // {
+    //     // Get the authenticated user
+    //     $user = $request->user();
+
+    //     // Validate authentication
+    //     if (!$user) {
+    //         return response()->json([
+    //             'error' => 'Usuario no autenticado',
+    //             'message' => 'Debes iniciar sesión para acceder a tus playlists. Por favor, verifica tu token de autenticación.'
+    //         ], 401);
+    //     }
+
+    //     try {
+    //         // Filter playlists by the authenticated user
+    //         $playlists = Playlist::where('user_id', $user->id)
+    //             ->included() // Custom scope for relationships
+    //             ->filter()   // Custom scope for filtering
+    //             ->sort()     // Custom scope for sorting
+    //             ->getOrPaginate();
+
+    //         // Check if playlists exist
+    //         if ($playlists->isEmpty()) {
+    //             return response()->json([
+    //                 'message' => 'No se encontraron playlists para este usuario.',
+    //                 'data' => []
+    //             ], 200);
+    //         }
+
+    //         return response()->json([
+    //             'message' => 'Playlists obtenidas exitosamente.',
+    //             'data' => $playlists
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         // Handle any unexpected errors (e.g., database issues)
+    //         return response()->json([
+    //             'error' => 'Error al obtener las playlists',
+    //             'message' => 'Ocurrió un error inesperado al intentar obtener las playlists: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    // public function index()
+    // {
+    //     $playlists = Playlist::included()
+    //         ->filter()
+    //         ->sort()
+    //         ->getOrPaginate();
+
+    //     return response()->json($playlists);
+    // }
 
 
     public function store(Request $request)
