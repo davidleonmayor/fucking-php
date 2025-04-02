@@ -8,15 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Podcast extends Model
 {
-    use HasFactory,ApiTrait;
+    use HasFactory, ApiTrait;
 
-    protected $guarded= [];
+    protected $guarded = [];
 
 
     //Listas Blancas
     protected $allowIncluded = ['tags', 'likes', 'histories', 'playlists'];
-    protected $allowFilter = ['id', 'title','description', 'duration'];
-    protected $allowSort = ['id', 'title','duration'];
+    protected $allowFilter = ['id', 'title', 'description', 'duration'];
+    protected $allowSort = ['id', 'title', 'duration'];
 
 
 
@@ -43,5 +43,10 @@ class Podcast extends Model
     public function playlists()
     {
         return $this->belongsToMany(Playlist::class, 'playlist_podcast');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

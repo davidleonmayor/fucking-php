@@ -13,17 +13,16 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\CanResetPassword;
 
 class User extends Authenticatable implements CanResetPassword
-
 {
     use HasApiTokens, HasFactory, Notifiable, ApiTrait;
     protected $table = 'users';
 
-     //Listas Blancas
-     protected $allowIncluded = ['likes', 'histories', 'playlists'];
-     protected $allowFilter = ['id', 'name'];
-     protected $allowSort = ['id', 'name'];
- 
- 
+    //Listas Blancas
+    protected $allowIncluded = ['likes', 'histories', 'playlists'];
+    protected $allowFilter = ['id', 'name'];
+    protected $allowSort = ['id', 'name'];
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -82,6 +81,8 @@ class User extends Authenticatable implements CanResetPassword
     {
         return $this->hasMany(History::class);
     }
-
-
+    public function podcasts()
+    {
+        return $this->hasMany(Podcast::class);
+    }
 }
