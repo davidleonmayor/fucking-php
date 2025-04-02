@@ -8,13 +8,16 @@ use Illuminate\Http\Request;
 
 class PlaylistController extends Controller
 {
+    /**
+     * Listar todas las playlists del usuario autenticado
+     */
     public function index(Request $request)
     {
         try {
             $playlists = Playlist::where('user_id', $request->user()->id)
-                ->included()
-                ->filter()
-                ->sort()
+                ->included() // Relaciones opcionales definidas en el modelo
+                ->filter()   // Filtros personalizados
+                ->sort()     // Ordenamiento personalizado
                 ->getOrPaginate();
 
             if ($playlists->isEmpty()) {
@@ -28,169 +31,153 @@ class PlaylistController extends Controller
                 'message' => 'Playlists obtenidas exitosamente.',
                 'data' => $playlists
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error al obtener las playlists',
-                'message' => 'Ocurrió un error inesperado al intentar obtener las playlists: ' . $e->getMessage()
+                'message' => 'Ocurrió un error inesperado: ' . $e->getMessage()
             ], 500);
         }
     }
-    // public function index(Request $request)
-    // {
-    //     // Get the authenticated user
-    //     $user = $request->user();
 
-    //     // Validate authentication
-    //     if (!$user) {
-    //         return response()->json([
-    //             'error' => 'Usuario no autenticado',
-    //             'message' => 'Debes iniciar sesión para acceder a tus playlists. Por favor, verifica tu token de autenticación.'
-    //         ], 401);
-    //     }
-
-    //     try {
-    //         // Filter playlists by the authenticated user
-    //         $playlists = Playlist::where('user_id', $user->id)
-    //             ->included() // Custom scope for relationships
-    //             ->filter()   // Custom scope for filtering
-    //             ->sort()     // Custom scope for sorting
-    //             ->getOrPaginate();
-
-    //         // Check if playlists exist
-    //         if ($playlists->isEmpty()) {
-    //             return response()->json([
-    //                 'message' => 'No se encontraron playlists para este usuario.',
-    //                 'data' => []
-    //             ], 200);
-    //         }
-
-    //         return response()->json([
-    //             'message' => 'Playlists obtenidas exitosamente.',
-    //             'data' => $playlists
-    //         ], 200);
-
-    //     } catch (\Exception $e) {
-    //         // Handle any unexpected errors (e.g., database issues)
-    //         return response()->json([
-    //             'error' => 'Error al obtener las playlists',
-    //             'message' => 'Ocurrió un error inesperado al intentar obtener las playlists: ' . $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    // public function index()
-    // {
-    //     $playlists = Playlist::included()
-    //         ->filter()
-    //         ->sort()
-    //         ->getOrPaginate();
-
-    //     return response()->json($playlists);
-    // }
-
-
+    /**
+     * Crear una nueva playlist
+     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'user_id' => 'required|exists:users,id',
-            'audio_id' => 'required|exists:audios,id', // Validamos que el audio exista
+            'audio_id' => 'required|exists:audios,id', // Validamos el audio inicial
         ]);
 
-        // Crear la nueva playlist
+        // Verificar que el usuario autenticado sea el propietario
+        if ($request->user()->id !== (int) $request->user_id) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes crear una playlist para otro usuario.'
+            ], 403);
+        }
+
         $playlist = Playlist::create([
             'name' => $request->name,
             'user_id' => $request->user_id,
         ]);
 
-        // Asociar el audio que el usuario ha seleccionado con la nueva playlist
         $playlist->audios()->attach($request->audio_id);
 
-        return response()->json($playlist, 201);
+        return response()->json([
+            'message' => 'Playlist creada exitosamente.',
+            'data' => $playlist
+        ], 201);
     }
 
-
+    /**
+     * Mostrar los detalles de una playlist específica
+     */
     public function show(Playlist $playlist)
     {
-        // Cargar las relaciones con audios y podcasts si están presentes
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No tienes permiso para ver esta playlist.'
+            ], 403);
+        }
+
         $playlist->load('audios', 'podcasts');
 
-        return response()->json($playlist);
+        return response()->json([
+            'message' => 'Playlist obtenida exitosamente.',
+            'data' => $playlist
+        ], 200);
     }
 
-
+    /**
+     * Actualizar una playlist existente
+     */
     public function update(Request $request, Playlist $playlist)
     {
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'user_id' => 'sometimes|required|exists:users,id',
-            'audio_id' => 'sometimes|required|exists:audios,id', // Validar un solo audio_id
+            'audio_id' => 'sometimes|required|exists:audios,id',
         ]);
 
-        // Actualizar los detalles de la playlist
-        $playlist->update($request->only(['name', 'user_id', 'description']));
+        $playlist->update($request->only(['name', 'description']));
 
-        // Si se proporciona audio_id, agregarlo a la playlist
         if ($request->has('audio_id')) {
             $playlist->audios()->attach($request->audio_id);
         }
 
-        return response()->json($playlist);
-
+        return response()->json([
+            'message' => 'Playlist actualizada exitosamente.',
+            'data' => $playlist
+        ], 200);
     }
 
-
+    /**
+     * Eliminar una playlist
+     */
     public function destroy(Playlist $playlist)
     {
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes eliminar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
         $playlist->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Playlist eliminada exitosamente.'], 204);
     }
 
-    public function removeAudio(Playlist $playlist, $audioId)
-    {
-        // Eliminar la relación entre la playlist y el audio en la tabla pivote
-        $playlist->audios()->detach($audioId);
-
-        return response()->json(['message' => 'Audio eliminado de la playlist'], 200);
-    }
-
+    /**
+     * Agregar un audio a una playlist
+     */
     public function addAudio(Request $request, Playlist $playlist)
     {
-        // Validamos que se envíe un audio_id y que exista en la tabla 'audios'
         $request->validate([
             'audio_id' => 'required|exists:audios,id',
         ]);
 
-        //Solo el usuario propieratio puede modificarlo
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
 
-        // if ($playlist->user_id !== auth()->id()) {
-        //     return response()->json(['error' => 'No puedes modificar esta playlist'], 403);
-        // }
-
-        // Adjuntamos el audio a la playlist (relación muchos a muchos)
         $playlist->audios()->attach($request->audio_id);
 
         return response()->json([
             'message' => 'Audio agregado a la playlist exitosamente.',
+            'playlist_id' => $playlist->id,
+            'audio_id' => $request->audio_id
         ], 201);
     }
 
+    /**
+     * Listar los audios de una playlist
+     */
     public function listAudios(Playlist $playlist)
     {
-        // Verify the playlist belongs to the authenticated user
-        $user = request()->user();
-        if ($user && $playlist->user_id !== $user->id) {
+        if ($playlist->user_id !== auth()->id()) {
             return response()->json([
-                'error' => 'Acceso no autorizado',
+                'error' => 'No autorizado',
                 'message' => 'No tienes permiso para ver los audios de esta playlist.'
             ], 403);
         }
 
         $audios = $playlist->audios()->get();
+
         if ($audios->isEmpty()) {
             return response()->json([
                 'message' => 'No se encontraron audios en esta playlist.',
@@ -208,39 +195,11 @@ class PlaylistController extends Controller
         ], 200);
     }
 
+    /**
+     * Actualizar la información de un audio en una playlist (ej. orden)
+     */
     public function updateAudio(Request $request, Playlist $playlist, $audioId)
     {
-        $data = $request->validate([
-            'order' => 'required|integer',
-        ]);
-
-        // Verificar que el audio exista en la playlist
-        if (!$playlist->audios()->where('audio_id', $audioId)->exists()) {
-            return response()->json([
-                'error' => 'Audio no encontrado en la playlist'
-            ], 404);
-        }
-
-        // Actualizar el campo 'order' en la tabla pivote
-        $playlist->audios()->updateExistingPivot($audioId, ['order' => $data['order']]);
-
-        return response()->json([
-            'message' => 'Audio actualizado exitosamente',
-            'audio_id' => $audioId,
-            'order' => $data['order']
-        ], 200);
-    }
-
-    // 
-
-    public function addPodcast(Request $request, Playlist $playlist)
-    {
-        // Validar que se envíe un podcast_id y que exista en la tabla 'podcasts'
-        $request->validate([
-            'podcast_id' => 'required|exists:podcasts,id',
-        ]);
-
-        // Verificar que la playlist pertenece al usuario autenticado
         if ($playlist->user_id !== auth()->id()) {
             return response()->json([
                 'error' => 'No autorizado',
@@ -248,7 +207,59 @@ class PlaylistController extends Controller
             ], 403);
         }
 
-        // Adjuntar el podcast a la playlist
+        $request->validate([
+            'order' => 'required|integer',
+        ]);
+
+        if (!$playlist->audios()->where('audio_id', $audioId)->exists()) {
+            return response()->json([
+                'error' => 'Audio no encontrado en la playlist'
+            ], 404);
+        }
+
+        $playlist->audios()->updateExistingPivot($audioId, ['order' => $request->order]);
+
+        return response()->json([
+            'message' => 'Audio actualizado exitosamente.',
+            'playlist_id' => $playlist->id,
+            'audio_id' => $audioId,
+            'order' => $request->order
+        ], 200);
+    }
+
+    /**
+     * Eliminar un audio de una playlist
+     */
+    public function removeAudio(Playlist $playlist, $audioId)
+    {
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
+        $playlist->audios()->detach($audioId);
+
+        return response()->json(['message' => 'Audio eliminado de la playlist'], 200);
+    }
+
+    /**
+     * Agregar un podcast a una playlist
+     */
+    public function addPodcast(Request $request, Playlist $playlist)
+    {
+        $request->validate([
+            'podcast_id' => 'required|exists:podcasts,id',
+        ]);
+
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
         $playlist->podcasts()->attach($request->podcast_id);
 
         return response()->json([
@@ -258,14 +269,83 @@ class PlaylistController extends Controller
         ], 201);
     }
 
+    /**
+     * Listar los podcasts de una playlist
+     */
+    public function getPodcasts(Playlist $playlist)
+    {
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No tienes permiso para ver los podcasts de esta playlist.'
+            ], 403);
+        }
+
+        $podcasts = $playlist->podcasts()->get();
+
+        if ($podcasts->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron podcasts en esta playlist.',
+                'playlist_id' => $playlist->id,
+                'playlist_name' => $playlist->name,
+                'podcasts' => []
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Podcasts obtenidos exitosamente.',
+            'playlist_id' => $playlist->id,
+            'playlist_name' => $playlist->name,
+            'podcasts' => $podcasts
+        ], 200);
+    }
+
+    /**
+     * Actualizar la información de un podcast en una playlist (ej. orden)
+     */
+    public function updatePodcast(Request $request, Playlist $playlist, $podcastId)
+    {
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
+        $request->validate([
+            'order' => 'required|integer',
+        ]);
+
+        if (!$playlist->podcasts()->where('podcast_id', $podcastId)->exists()) {
+            return response()->json([
+                'error' => 'Podcast no encontrado en la playlist'
+            ], 404);
+        }
+
+        $playlist->podcasts()->updateExistingPivot($podcastId, ['order' => $request->order]);
+
+        return response()->json([
+            'message' => 'Podcast actualizado exitosamente.',
+            'playlist_id' => $playlist->id,
+            'podcast_id' => $podcastId,
+            'order' => $request->order
+        ], 200);
+    }
+
+    /**
+     * Eliminar un podcast de una playlist
+     */
     public function removePodcast(Playlist $playlist, $podcastId)
     {
-        // Eliminar la relación entre la playlist y el podcast en la tabla pivote
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
         $playlist->podcasts()->detach($podcastId);
 
         return response()->json(['message' => 'Podcast eliminado de la playlist'], 200);
     }
-
-    //http://tranquilidad.test/v1/playlists/{playlist_id}/audios/{audio_id}
-
 }

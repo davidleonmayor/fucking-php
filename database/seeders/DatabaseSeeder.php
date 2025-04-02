@@ -333,4 +333,81 @@ class DatabaseSeeder extends Seeder
             }
         }
     }
+
+    private function podcasts()
+    {
+        // Obtener géneros y álbumes para asociar los podcasts
+        $electronicaGenre = Genre::where('name', 'Electrónica')->first();
+        $gamerAlbum = Album::where('title', 'Gamer')->first();
+
+        // Verificar que existan el género y el álbum
+        if (!$electronicaGenre || !$gamerAlbum) {
+            echo "Error: Género 'Electrónica' o álbum 'Gamer' no encontrados.\n";
+            return;
+        }
+
+        $podcasts = [
+            [
+                'title' => 'Podcast de Tecnología',
+                'description' => 'Un podcast sobre las últimas tendencias en tecnología.',
+                'image_local_path' => storage_path('app/public/podcast-tech.jpg'),
+                'audio_local_path' => storage_path('app/public/sample-podcast.mp3'),
+                'duration' => 1800, // 30 minutos en segundos
+                'genre_id' => $electronicaGenre->id,
+                'album_id' => $gamerAlbum->id,
+            ],
+            [
+                'title' => 'Historias Gamer',
+                'description' => 'Relatos y anécdotas del mundo de los videojuegos.',
+                'image_local_path' => storage_path('app/public/podcast-gamer.jpg'),
+                'audio_local_path' => storage_path('app/public/sample-podcast.mp3'),
+                'duration' => 1500, // 25 minutos en segundos
+                'genre_id' => $electronicaGenre->id,
+                'album_id' => $gamerAlbum->id,
+            ],
+        ];
+
+        foreach ($podcasts as $podcastData) {
+            try {
+                // Subir imagen a Cloudinary
+                $imageUrl = null;
+                if (file_exists($podcastData['image_local_path'])) {
+                    $uploadedImage = Cloudinary::upload($podcastData['image_local_path'], [
+                        'folder' => 'podcasts/images',
+                        'public_id' => Str::random(10)
+                    ]);
+                    $imageUrl = $uploadedImage->getSecurePath();
+                } else {
+                    echo "Archivo de imagen no encontrado: " . $podcastData['image_local_path'] . "\n";
+                }
+
+                // Subir audio a Cloudinary
+                $audioUrl = null;
+                if (file_exists($podcastData['audio_local_path'])) {
+                    $uploadedAudio = Cloudinary::upload($podcastData['audio_local_path'], [
+                        'resource_type' => 'video',
+                        'folder' => 'podcasts/mp3',
+                        'public_id' => Str::random(10)
+                    ]);
+                    $audioUrl = $uploadedAudio->getSecurePath();
+                } else {
+                    echo "Archivo de audio no encontrado: " . $podcastData['audio_local_path'] . "\n";
+                }
+
+                Podcast::create([
+                    'title' => $podcastData['title'],
+                    'description' => $podcastData['description'],
+                    'image_file' => $imageUrl,
+                    'audio_file' => $audioUrl,
+                    'duration' => $podcastData['duration'],
+                    'genre_id' => $podcastData['genre_id'],
+                    'album_id' => $podcastData['album_id'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                echo "Error al subir el podcast para " . $podcastData['title'] . ": " . $e->getMessage() . "\n";
+            }
+        }
+    }
 }
