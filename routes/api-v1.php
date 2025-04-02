@@ -76,6 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'updateAudio']);
     Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
     Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
+    // Nueva ruta para agregar un podcast
+    Route::post('/playlists/{playlist}/podcasts', [PlaylistController::class, 'addPodcast']);
 });
 // Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
 

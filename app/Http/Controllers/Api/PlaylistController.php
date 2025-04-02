@@ -231,6 +231,33 @@ class PlaylistController extends Controller
         ], 200);
     }
 
+    // 
+
+    public function addPodcast(Request $request, Playlist $playlist)
+    {
+        // Validar que se envíe un podcast_id y que exista en la tabla 'podcasts'
+        $request->validate([
+            'podcast_id' => 'required|exists:podcasts,id',
+        ]);
+
+        // Verificar que la playlist pertenece al usuario autenticado
+        if ($playlist->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'No autorizado',
+                'message' => 'No puedes modificar esta playlist porque no te pertenece.'
+            ], 403);
+        }
+
+        // Adjuntar el podcast a la playlist
+        $playlist->podcasts()->attach($request->podcast_id);
+
+        return response()->json([
+            'message' => 'Podcast agregado a la playlist exitosamente.',
+            'playlist_id' => $playlist->id,
+            'podcast_id' => $request->podcast_id
+        ], 201);
+    }
+
     public function removePodcast(Playlist $playlist, $podcastId)
     {
         // Eliminar la relación entre la playlist y el podcast en la tabla pivote
