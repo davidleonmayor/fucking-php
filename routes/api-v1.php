@@ -40,7 +40,13 @@ Route::apiResource('audios', AudioController::class);
 // Route::post('audios/save', [AudioController::class, 'store']);
 
 // Rutas para pocast
-Route::apiResource('podcasts', PodcastController::class);
+// Route::apiResource('podcasts', PodcastController::class);
+// Rutas públicas para listar y ver podcasts
+Route::apiResource('podcasts', PodcastController::class)->only(['index', 'show']);
+// Rutas protegidas para crear, actualizar y eliminar podcasts
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('podcasts', PodcastController::class)->except(['index', 'show']);
+});
 
 // Rutas para Playlist
 Route::apiResource('playlists', PlaylistController::class);
@@ -67,6 +73,7 @@ Route::apiResource('histories', HistoryController::class);
 
 
 
+
 // RUTAS PARA ELIMINAR REGISTROS DE LA RELACION DE PLAYLIST
 // Rutas para Playlist
 Route::middleware('auth:sanctum')->group(function () {
@@ -80,10 +87,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/playlists/{playlist}/audios/{audio}', [PlaylistController::class, 'removeAudio']);
 
     // Rutas para gestionar podcasts en playlists
-    Route::post('/playlists/{playlist}/podcasts', [PlaylistController::class, 'addPodcast']);
-    Route::get('/playlists/{playlist}/podcasts', [PlaylistController::class, 'getPodcasts']);
-    Route::put('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'updatePodcast']);
-    Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
+    // Route::post('/playlists/{playlist}/podcasts', [PlaylistController::class, 'addPodcast']);
+    // Route::get('/playlists/{playlist}/podcasts', [PlaylistController::class, 'getPodcasts']);
+    // Route::put('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'updatePodcast']);
+    // Route::delete('/playlists/{playlist}/podcasts/{podcast}', [PlaylistController::class, 'removePodcast']);
 });
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::apiResource('playlists', PlaylistController::class);
