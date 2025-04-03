@@ -22,24 +22,22 @@ class PodcastController extends Controller
 
     public function store(Request $request)
     {
-        // Validar la solicitud
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'video_file' => 'required|mimes:mp4,mov,ogg,qt|max:20000',
+            'video_file' => 'required|mimes:mp4,mov,ogg,qt,webm|max:20000', // Añadir webm
             'duration' => 'required|integer',
             'category' => 'required|in:Afirmaciones,Motivación,Autoestima',
         ]);
 
-        // Obtener el usuario autenticado
+        // Resto del código sigue igual...
         $user = $request->user();
 
         try {
             $imageFilePath = null;
             $videoFilePath = null;
 
-            // Subir imagen a Cloudinary si está presente
             if ($request->hasFile('image_file')) {
                 $uploadedImage = Cloudinary::upload($request->file('image_file')->getRealPath(), [
                     'folder' => 'podcasts/images',
@@ -48,7 +46,6 @@ class PodcastController extends Controller
                 $imageFilePath = $uploadedImage->getSecurePath();
             }
 
-            // Subir video a Cloudinary
             $uploadedVideo = Cloudinary::upload($request->file('video_file')->getRealPath(), [
                 'resource_type' => 'video',
                 'folder' => 'podcasts/videos',
@@ -56,7 +53,6 @@ class PodcastController extends Controller
             ]);
             $videoFilePath = $uploadedVideo->getSecurePath();
 
-            // Crear el podcast, asignando el id del usuario autenticado
             $podcast = Podcast::create([
                 'user_id' => $user->id,
                 'title' => $request->title,
